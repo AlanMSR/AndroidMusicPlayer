@@ -11,26 +11,40 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import com.example.androidmusicplayer.ui.theme.AndroidMusicPlayerTheme
 
+enum class Screen { Library, Download, Player }
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             AndroidMusicPlayerTheme {
-                var showDownload by remember { mutableStateOf(false) }
+                var screen by remember { mutableStateOf(Screen.Library) }
+                var selectedSongId by remember { mutableLongStateOf(0L) }
 
-                BackHandler(enabled = showDownload) { showDownload = false }
+                BackHandler(enabled = screen != Screen.Library) { screen = Screen.Library }
 
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    if (showDownload) {
-                        DownloadScreen(
-                            modifier = Modifier.padding(innerPadding),
-                            onBack = { showDownload = false }
+                    val pad = Modifier.padding(innerPadding)
+                    when (screen) {
+                        Screen.Library -> LibraryScreen(
+                            modifier = pad,
+                            onAddSongs = { screen = Screen.Download },
+                            onOpenPlayer = { id ->
+                                selectedSongId = id
+                                screen = Screen.Player
+                            }
                         )
-                    } else {
-                        LibraryScreen(
-                            modifier = Modifier.padding(innerPadding),
-                            onAddSongs = { showDownload = true }
+
+                        Screen.Download -> DownloadScreen(
+                            modifier = pad,
+                            onBack = { screen = Screen.Library }
+                        )
+
+                        Screen.Player -> PlayerScreen(
+                            songId = selectedSongId,
+                            modifier = pad,
+                            onBack = { screen = Screen.Library }
                         )
                     }
                 }
@@ -38,3 +52,4 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+

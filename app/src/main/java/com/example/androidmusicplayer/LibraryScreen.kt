@@ -28,7 +28,8 @@ import java.io.File
 fun LibraryScreen(
     modifier: Modifier = Modifier,
     onAddSongs: () -> Unit,
-    onOpenSettings: () -> Unit = {}
+    onOpenSettings: () -> Unit = {},
+    onOpenPlayer: (Long) -> Unit
 ) {
     val context = LocalContext.current
     val dao = remember { AppDatabase.get(context).musicDao() }
@@ -107,7 +108,9 @@ fun LibraryScreen(
                 SongCard(
                     song = song,
                     isPlaying = isCurrent && isPlaying,
-                    onClick = { },
+                    onClick = {
+                        onOpenPlayer(song.id)
+                    },
                     onPlayPause = {
                         if (isCurrent) {
                             if (isPlaying) controller?.pause() else controller?.play()
