@@ -64,4 +64,5 @@ dependencies {
     ksp("androidx.room:room-compiler:2.8.4")
     implementation("androidx.media3:media3-exoplayer:1.11.1")
     implementation("androidx.media3:media3-session:1.11.1")
+    implementation("io.coil-kt.coil3:coil-compose:3.4.0")
 }
