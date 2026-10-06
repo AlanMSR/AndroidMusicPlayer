@@ -27,7 +27,7 @@ class MainActivity : ComponentActivity() {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     val pad = Modifier.padding(innerPadding)
                     when (screen) {
-                        Screen.Library -> LibraryScreen(
+                        Screen.Library -> HomeScreen(
                             modifier = pad,
                             onAddSongs = { screen = Screen.Download },
                             onOpenPlayer = { id ->

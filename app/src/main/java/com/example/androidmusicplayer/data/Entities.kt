@@ -38,7 +38,8 @@ data class Playlist(
 )
 data class PlaylistSongCrossRef(
     val playlistId: Long,
-    val songId: Long
+    val songId: Long,
+    val position: Int = 0
 )
 
 // Not a table, just the result shape of a "playlist with its songs" query
@@ -54,4 +55,10 @@ data class PlaylistWithSongs(
         )
     )
     val songs: List<Song>
+)
+
+data class PlaylistCover(
+    val id: Long,
+    val name: String,
+    val thumbnailPath: String?
 )

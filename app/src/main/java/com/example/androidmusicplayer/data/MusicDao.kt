@@ -37,8 +37,23 @@ interface MusicDao {
     suspend fun deletePlaylist(playlist: Playlist)
 
     // Linking
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun addSongToPlaylist(ref: PlaylistSongCrossRef)
+    @Query("""
+        INSERT OR IGNORE INTO PlaylistSongCrossRef (playlistId, songId, position)
+        SELECT :playlistId, :songId, COALESCE(MAX(position), -1) + 1
+        FROM PlaylistSongCrossRef WHERE playlistId = :playlistId
+    """)
+    suspend fun addSongToPlaylist(playlistId: Long, songId: Long)
+
+    @Query("""
+        SELECT p.id AS id, p.name AS name,
+            (SELECT s.thumbnailPath FROM PlaylistSongCrossRef r
+             JOIN Song s ON s.id = r.songId
+             WHERE r.playlistId = p.id
+             ORDER BY r.position ASC LIMIT 1) AS thumbnailPath
+        FROM Playlist p
+        ORDER BY p.name COLLATE NOCASE
+    """)
+    fun getPlaylistCovers(): Flow<List<PlaylistCover>>
 
     @Delete
     suspend fun removeSongFromPlaylist(ref: PlaylistSongCrossRef)

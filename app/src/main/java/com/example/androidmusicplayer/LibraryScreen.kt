@@ -27,16 +27,12 @@ import java.io.File
 @Composable
 fun LibraryScreen(
     modifier: Modifier = Modifier,
-    onAddSongs: () -> Unit,
-    onOpenSettings: () -> Unit = {},
     onOpenPlayer: (Long) -> Unit
 ) {
     val context = LocalContext.current
     val dao = remember { AppDatabase.get(context).musicDao() }
     val songs by dao.getAllSongs().collectAsState(initial = emptyList())
     val controller = rememberController()
-
-    val title = "Songs" // later: "Songs" or "Playlists"
 
     // Track what's playing so cards can show play/pause
     var currentId by remember { mutableStateOf<String?>(null) }
@@ -65,28 +61,6 @@ fun LibraryScreen(
     }
 
     Column(modifier = modifier.fillMaxSize()) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.displayLarge,
-                modifier = Modifier.weight(1f)
-            )
-            IconButton(onClick = onAddSongs) {
-//                Icon(Icons.Default.Add, contentDescription = "Add songs")
-                Text("+")
-            }
-            IconButton(onClick = onOpenSettings) {
-//                Icon(Icons.Default.Menu, contentDescription = "Settings")
-                Text("☰")
-            }
-        }
-
-        HorizontalDivider()
 
         // Search and filters (fixed). Empty placeholder for now.
         Box(
@@ -97,7 +71,7 @@ fun LibraryScreen(
 
         HorizontalDivider()
 
-        // Song list
+//        Song list
         LazyColumn(
             modifier = Modifier.weight(1f),
             contentPadding = PaddingValues(12.dp),
