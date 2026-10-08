@@ -2,6 +2,7 @@ package com.example.androidmusicplayer
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 //import androidx.compose.material.icons.Icons
 //import androidx.compose.material.icons.filled.Add
@@ -14,12 +15,13 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun HomeScreen(
+    pagerState: PagerState,
     modifier: Modifier = Modifier,
     onAddSongs: () -> Unit,
     onOpenSettings: () -> Unit = {},
-    onOpenPlayer: (Long) -> Unit
+    onOpenPlayer: (Long) -> Unit,
+    onOpenPlaylist: (Long) -> Unit
 ) {
-    val pagerState = rememberPagerState(pageCount = { 2 })
     val title = if (pagerState.currentPage == 0) "Songs" else "Playlists"
 
     Column(modifier = modifier.fillMaxSize()) {
@@ -52,7 +54,7 @@ fun HomeScreen(
         ) { page ->
             when (page) {
                 0 -> LibraryScreen(onOpenPlayer = onOpenPlayer)
-                else -> PlaylistsScreen()
+                else -> PlaylistsScreen(onOpenPlaylist = onOpenPlaylist)
             }
         }
     }

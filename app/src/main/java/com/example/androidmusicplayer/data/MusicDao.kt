@@ -30,6 +30,17 @@ interface MusicDao {
     @Insert
     suspend fun insertPlaylist(playlist: Playlist): Long
 
+    @Query("SELECT * FROM Playlist WHERE id = :id")
+    fun getPlaylist(id: Long): Flow<Playlist?>
+
+    @Query("""
+    SELECT s.* FROM Song s
+    JOIN PlaylistSongCrossRef r ON r.songId = s.id
+    WHERE r.playlistId = :playlistId
+    ORDER BY r.position ASC
+""")
+    fun getSongsInPlaylist(playlistId: Long): Flow<List<Song>>
+
     @Query("SELECT * FROM Playlist ORDER BY name COLLATE NOCASE")
     fun getAllPlaylists(): Flow<List<Playlist>>
 
@@ -64,4 +75,7 @@ interface MusicDao {
 
     @Query("SELECT playlistId FROM PlaylistSongCrossRef WHERE songId = :songId")
     fun getPlaylistIdsForSong(songId: Long): Flow<List<Long>>
+
+    @Query("UPDATE Playlist SET name = :name WHERE id = :id")
+    suspend fun renamePlaylist(id: Long, name: String)
 }

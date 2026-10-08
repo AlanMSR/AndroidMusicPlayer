@@ -40,6 +40,7 @@ fun LibraryScreen(
     val controller = rememberController()
     val scope = rememberCoroutineScope()
     var playlistTarget by remember { mutableStateOf<Song?>(null) }
+    var deleteTarget by remember { mutableStateOf<Song?>(null) }
 
     // Track what's playing so cards can show play/pause
     var currentId by remember { mutableStateOf<String?>(null) }
@@ -80,8 +81,32 @@ fun LibraryScreen(
                 SongCard(
                     song = song,
                     onClick = { onOpenPlayer(song.id) },
-                    onDelete = {
-                        // Remove it from the playing queue, if present (must happen on the main thread)
+                    ) { close ->
+                    DropdownMenuItem(
+                        text = { Text("Delete song") },
+                        onClick = { close(); deleteTarget = song }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Add to playlist") },
+                        onClick = { close(); playlistTarget = song }
+                    )
+                }
+            }
+        }
+        playlistTarget?.let { song ->
+            AddToPlaylistDialog(song = song, onDismiss = { playlistTarget = null })
+        }
+
+        deleteTarget?.let { song ->
+            AlertDialog(
+                onDismissRequest = { deleteTarget = null },
+                text = { Text("Are you sure?", style = MaterialTheme.typography.titleLarge) },
+                dismissButton = {
+                    TextButton(onClick = { deleteTarget = null }) { Text("Cancel") }
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        deleteTarget = null
                         controller?.let { c ->
                             for (i in c.mediaItemCount - 1 downTo 0) {
                                 if (c.getMediaItemAt(i).mediaId == song.id.toString()) c.removeMediaItem(i)
@@ -92,27 +117,20 @@ fun LibraryScreen(
                             File(song.filePath).delete()
                             song.thumbnailPath?.let { File(it).delete() }
                         }
-                    },
-                    onAddToPlaylist = { playlistTarget = song }
-                )
-            }
-        }
-        playlistTarget?.let { song ->
-            AddToPlaylistDialog(song = song, onDismiss = { playlistTarget = null })
+                    }) { Text("Delete") }
+                }
+            )
         }
     }
-
 }
 
 @Composable
 fun SongCard(
     song: Song,
     onClick: () -> Unit,
-    onDelete: () -> Unit,
-    onAddToPlaylist: () -> Unit
+    menuItems: @Composable (closeMenu: () -> Unit) -> Unit
 ) {
     var showMenu by remember { mutableStateOf(false) }
-    var showConfirm by remember { mutableStateOf(false) }
 
     Card(
         modifier = Modifier
@@ -164,44 +182,12 @@ fun SongCard(
                         IconButton(
                             onClick = { showMenu = false },
                             modifier = Modifier.align(Alignment.CenterEnd)
-                        ) {
-//                            Icon(Icons.Default.Close, contentDescription = "Cancel")
-                            Text("X")
-                        }
+                        ) { Text("X") }
                     }
-                    DropdownMenuItem(
-                        text = { Text("Delete song") },
-                        onClick = {
-                            showMenu = false
-                            showConfirm = true
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text("Add to playlist") },
-                        onClick = {
-                            showMenu = false
-                            onAddToPlaylist()
-                        }
-                    )
+                    menuItems { showMenu = false }
                 }
             }
         }
-    }
-
-    if (showConfirm) {
-        AlertDialog(
-            onDismissRequest = { showConfirm = false },
-            text = { Text("Are you sure?", style = MaterialTheme.typography.titleLarge) },
-            dismissButton = {
-                TextButton(onClick = { showConfirm = false }) { Text("Cancel") }
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    showConfirm = false
-                    onDelete()
-                }) { Text("Delete") }
-            }
-        )
     }
 }
 

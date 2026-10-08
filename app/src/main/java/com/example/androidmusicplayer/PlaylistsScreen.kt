@@ -27,7 +27,10 @@ import kotlinx.coroutines.launch
 import java.io.File
 
 @Composable
-fun PlaylistsScreen(modifier: Modifier = Modifier) {
+fun PlaylistsScreen(
+    modifier: Modifier = Modifier,
+    onOpenPlaylist: (Long) -> Unit
+) {
     val context = LocalContext.current
     val dao = remember { AppDatabase.get(context).musicDao() }
     val playlists by dao.getPlaylistCovers().collectAsState(initial = emptyList())
@@ -70,7 +73,7 @@ fun PlaylistsScreen(modifier: Modifier = Modifier) {
             modifier = Modifier.weight(1f)
         ) {
             items(visible, key = { it.id }) { playlist ->
-                PlaylistCard(playlist = playlist, onClick = { /* open playlist later */ })
+                PlaylistCard(playlist = playlist, onClick = { onOpenPlaylist(playlist.id) })
             }
         }
     }
