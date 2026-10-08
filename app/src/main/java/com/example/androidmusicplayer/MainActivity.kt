@@ -22,10 +22,16 @@ class MainActivity : ComponentActivity() {
             AndroidMusicPlayerTheme {
                 var screen by remember { mutableStateOf(Screen.Library) }
                 var selectedSongId by remember { mutableLongStateOf(0L) }
+                var queuePlaylistId by remember { mutableStateOf<Long?>(null) }
                 var selectedPlaylistId by remember { mutableLongStateOf(0L) }
                 val pagerState = rememberPagerState(pageCount = { 2 })
 
-                BackHandler(enabled = screen != Screen.Library) { screen = Screen.Library }
+                BackHandler(enabled = screen != Screen.Library) {
+                    screen = when {
+                        screen == Screen.Player && queuePlaylistId != null -> Screen.Playlist
+                        else -> Screen.Library
+                    }
+                }
 
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     val pad = Modifier.padding(innerPadding)
@@ -36,6 +42,7 @@ class MainActivity : ComponentActivity() {
                             onAddSongs = { screen = Screen.Download },
                             onOpenPlayer = { id ->
                                 selectedSongId = id
+                                queuePlaylistId = null
                                 screen = Screen.Player
                             },
                             onOpenPlaylist = { id -> selectedPlaylistId = id; screen = Screen.Playlist }
@@ -48,6 +55,7 @@ class MainActivity : ComponentActivity() {
 
                         Screen.Player -> PlayerScreen(
                             songId = selectedSongId,
+                            queuePlaylistId = queuePlaylistId,
                             modifier = pad,
                             onBack = { screen = Screen.Library }
                         )
@@ -56,7 +64,11 @@ class MainActivity : ComponentActivity() {
                             playlistId = selectedPlaylistId,
                             modifier = pad,
                             onBack = { screen = Screen.Library },
-                            onOpenPlayer = { id -> selectedSongId = id; screen = Screen.Player }
+                            onOpenPlayer = {
+                                id -> selectedSongId = id;
+                                queuePlaylistId = selectedPlaylistId
+                                screen = Screen.Player
+                            }
                         )
 
                     }

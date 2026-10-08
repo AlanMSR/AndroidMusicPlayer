@@ -20,10 +20,19 @@ import kotlinx.coroutines.delay
 import java.io.File
 
 @Composable
-fun PlayerScreen(songId: Long, modifier: Modifier = Modifier, onBack: () -> Unit) {
+fun PlayerScreen(
+    songId: Long,
+    queuePlaylistId: Long?,
+    modifier: Modifier = Modifier,
+    onBack: () -> Unit
+) {
     val context = LocalContext.current
     val dao = remember { AppDatabase.get(context).musicDao() }
-    val songs by dao.getAllSongs().collectAsState(initial = emptyList())
+    val songsFlow = remember(queuePlaylistId) {
+        if (queuePlaylistId == null) dao.getAllSongs()
+        else dao.getSongsInPlaylist(queuePlaylistId)
+    }
+    val songs by songsFlow.collectAsState(initial = emptyList())
     val controller = rememberController()
 
     var shownId by remember { mutableLongStateOf(songId) }
