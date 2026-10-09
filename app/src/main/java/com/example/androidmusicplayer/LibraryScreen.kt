@@ -26,12 +26,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
 import androidx.compose.foundation.lazy.items
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.window.Dialog
 import com.example.androidmusicplayer.data.PlaylistSongCrossRef
 
 @Composable
 fun LibraryScreen(
     modifier: Modifier = Modifier,
+    onAddSongs: () -> Unit,
     onOpenPlayer: (Long) -> Unit
 ) {
     val context = LocalContext.current
@@ -45,6 +47,10 @@ fun LibraryScreen(
     // Track what's playing so cards can show play/pause
     var currentId by remember { mutableStateOf<String?>(null) }
     var isPlaying by remember { mutableStateOf(false) }
+
+    // search states
+    var query by remember { mutableStateOf("") }
+    val visible = songs.filter { it.title.contains(query, ignoreCase = true) || it.uploader.contains(query, ignoreCase = true) }
 
     DisposableEffect(controller) {
         val c = controller ?: return@DisposableEffect onDispose {}
@@ -62,12 +68,30 @@ fun LibraryScreen(
 
     Column(modifier = modifier.fillMaxSize()) {
 
-        // Search and filters (fixed). Empty placeholder for now.
-        Box(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp)
-        )
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            OutlinedTextField(
+                value = query,
+                onValueChange = { query = it },
+                placeholder = {
+                    Text(
+                        text = "Search songs",
+                        color = Color.Gray
+                    )
+                },
+                singleLine = true,
+                modifier = Modifier.weight(1f)
+            )
+            Spacer(Modifier.width(8.dp))
+            FilledIconButton(onClick = onAddSongs) {
+//                Icon(Icons.Default.Add, contentDescription = "Download a song")
+                Text("*")
+            }
+        }
 
         HorizontalDivider()
 
@@ -77,7 +101,7 @@ fun LibraryScreen(
             contentPadding = PaddingValues(12.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            itemsIndexed(songs, key = { _, song -> song.id }) { index, song ->
+            itemsIndexed(visible, key = { _, song -> song.id }) { index, song ->
                 SongCard(
                     song = song,
                     onClick = { onOpenPlayer(song.id) },

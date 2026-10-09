@@ -40,10 +40,6 @@ fun HomeScreen(
 //                Icon(Icons.Default.Menu, contentDescription = "Settings")
                 Text("settings")
             }
-            IconButton(onClick = onAddSongs) {
-//                Icon(Icons.Default.Add, contentDescription = "Add songs")
-                Text("add songs")
-            }
         }
 
         HorizontalDivider()
@@ -53,7 +49,7 @@ fun HomeScreen(
             modifier = Modifier.weight(1f)
         ) { page ->
             when (page) {
-                0 -> LibraryScreen(onOpenPlayer = onOpenPlayer)
+                0 -> LibraryScreen(onOpenPlayer = onOpenPlayer, onAddSongs = onAddSongs)
                 else -> PlaylistsScreen(onOpenPlaylist = onOpenPlaylist)
             }
         }
