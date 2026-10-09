@@ -6,6 +6,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Casino
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -69,8 +74,8 @@ fun PlaylistDetailScreen(
 
     Column(modifier = modifier.fillMaxSize()) {
         // Back button
-        TextButton(onClick = onBack, modifier = Modifier.padding(horizontal = 8.dp)) {
-            Text("←", style = MaterialTheme.typography.headlineMedium)
+        IconButton(onClick = onBack) {
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
         }
 
         // Name (tap to edit) + delete button
@@ -106,7 +111,7 @@ fun PlaylistDetailScreen(
                         }
                 )
             }
-            IconButton(onClick = { showDelete = true }) { Text("🗑") }
+            IconButton(onClick = { showDelete = true }) { Icon(Icons.Default.Delete, contentDescription = "Delete") }
         }
 
         Text(
@@ -120,8 +125,8 @@ fun PlaylistDetailScreen(
             modifier = Modifier.padding(16.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            FilledIconButton(onClick = { play(shuffle = false) }) { Text("▶") }
-            FilledTonalIconButton(onClick = { play(shuffle = true) }) { Text("🎲") }
+            FilledIconButton(onClick = { play(shuffle = false) }) { Icon(Icons.Default.PlayArrow, contentDescription = "StartPlaylist") }
+            FilledTonalIconButton(onClick = { play(shuffle = true) }) { Icon(Icons.Default.Casino, contentDescription = "Random") }
         }
 
         // Search bar

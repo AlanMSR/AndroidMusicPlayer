@@ -3,6 +3,12 @@ package com.example.androidmusicplayer
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.SkipNext
+import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -102,8 +108,8 @@ fun PlayerScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Row(Modifier.fillMaxWidth()) {
-            TextButton(onClick = onBack) {
-                Text("←", style = MaterialTheme.typography.headlineMedium)
+            IconButton(onClick = onBack) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
             }
         }
 
@@ -175,7 +181,7 @@ fun PlayerScreen(
                 if (isCurrent) controller?.seekToPrevious()
                 else songs.getOrNull(index - 1)?.let { shownId = it.id }
             }) {
-                Text("⏮", style = MaterialTheme.typography.headlineMedium)
+                Icon(Icons.Default.SkipPrevious, contentDescription = "Previous", modifier = Modifier.size(32.dp))
             }
 
             FilledIconButton(
@@ -188,14 +194,18 @@ fun PlayerScreen(
                 },
                 modifier = Modifier.size(72.dp)
             ) {
-                Text(if (showPlaying) "⏸" else "▶", style = MaterialTheme.typography.headlineMedium)
+                Icon(
+                    imageVector = if (showPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                    contentDescription = if (showPlaying) "Pause" else "Play",
+                    modifier = Modifier.size(40.dp)
+                )
             }
 
             IconButton(onClick = {
                 if (isCurrent) controller?.seekToNext()
                 else songs.getOrNull(index + 1)?.let { shownId = it.id }
             }) {
-                Text("⏭", style = MaterialTheme.typography.headlineMedium)
+                Icon(Icons.Default.SkipNext, contentDescription = "Next", modifier = Modifier.size(32.dp))
             }
         }
 
