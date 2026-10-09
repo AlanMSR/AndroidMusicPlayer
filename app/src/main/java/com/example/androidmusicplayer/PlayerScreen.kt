@@ -85,6 +85,7 @@ fun PlayerScreen(
 
     val totalMs = if (isCurrent && duration > 0) duration else (song?.durationSec ?: 0L) * 1000
     val progress = if (isCurrent && totalMs > 0) position.toFloat() / totalMs else 0f
+    val shownPosition = if (dragging) (dragValue * totalMs).toLong() else position
 
     fun startShownSong() {
         controller?.apply {
@@ -137,21 +138,32 @@ fun PlayerScreen(
 
         Spacer(Modifier.weight(1f))
 
-        Slider(
-            value = if (dragging) dragValue else progress,
-            enabled = isCurrent,
-            onValueChange = {
-                dragging = true
-                dragValue = it
-            },
-            onValueChangeFinished = {
-                val target = (dragValue * totalMs).toLong()
-                controller?.seekTo(target)
-                position = target
-                dragging = false
-            },
-            modifier = Modifier.fillMaxWidth()
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(formatTime(shownPosition), style = MaterialTheme.typography.bodySmall)
+
+            Slider(
+                value = if (dragging) dragValue else progress,
+                enabled = isCurrent,
+                onValueChange = {
+                    dragging = true
+                    dragValue = it
+                },
+                onValueChangeFinished = {
+                    val target = (dragValue * totalMs).toLong()
+                    controller?.seekTo(target)
+                    position = target
+                    dragging = false
+                },
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 8.dp)
+            )
+
+            Text(formatTime(totalMs), style = MaterialTheme.typography.bodySmall)
+        }
 
         Spacer(Modifier.height(8.dp))
 
@@ -189,4 +201,12 @@ fun PlayerScreen(
 
         Spacer(Modifier.height(32.dp))
     }
+}
+
+private fun formatTime(ms: Long): String {
+    val totalSec = (ms / 1000).coerceAtLeast(0)
+    val h = totalSec / 3600
+    val m = (totalSec % 3600) / 60
+    val s = totalSec % 60
+    return if (h > 0) "%d:%02d:%02d".format(h, m, s) else "%d:%02d".format(m, s)
 }
