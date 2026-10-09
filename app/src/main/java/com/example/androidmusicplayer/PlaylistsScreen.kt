@@ -109,7 +109,6 @@ fun PlaylistCard(playlist: PlaylistCover, onClick: () -> Unit) {
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(1f)
-                .clip(RoundedCornerShape(12.dp))
                 .background(MaterialTheme.colorScheme.surfaceVariant)
         )
         Spacer(Modifier.height(6.dp))
