@@ -122,7 +122,6 @@ fun PlayerScreen(
             modifier = Modifier
                 .fillMaxWidth(0.75f)
                 .aspectRatio(1f)
-                .clip(RoundedCornerShape(16.dp))
                 .background(MaterialTheme.colorScheme.surfaceVariant)
         )
 
