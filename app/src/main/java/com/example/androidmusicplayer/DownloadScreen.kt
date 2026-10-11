@@ -33,7 +33,12 @@ import com.example.androidmusicplayer.data.Song
 import java.io.File
 
 @Composable
-fun DownloadScreen(modifier: Modifier = Modifier, onBack: () -> Unit) {
+fun DownloadScreen(
+    modifier: Modifier = Modifier,
+    initialUrl: String? = null,
+    onUrlConsumed: () -> Unit = {},
+    onBack: () -> Unit
+) {
     var url by remember { mutableStateOf("") }
     var status by remember { mutableStateOf("Paste a URL") }
     var progress by remember { mutableFloatStateOf(0f) }
@@ -41,6 +46,13 @@ fun DownloadScreen(modifier: Modifier = Modifier, onBack: () -> Unit) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val dao = remember { AppDatabase.get(context).musicDao() }
+
+    LaunchedEffect(initialUrl) {
+        if (initialUrl != null) {
+            url = initialUrl
+            onUrlConsumed()
+        }
+    }
 
     Column(
         modifier = modifier

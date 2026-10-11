@@ -26,7 +26,15 @@ fun rememberController(): MediaController? {
         val token = SessionToken(context, ComponentName(context, PlaybackService::class.java))
         val future = MediaController.Builder(context, token).buildAsync()
         future.addListener(
-            { controller = future.get() },
+            {
+                if (!future.isCancelled) {
+                    try {
+                        controller = future.get()
+                    } catch (e: Exception) {
+                        // connection failed or was cancelled; leave controller null
+                    }
+                }
+            },
             ContextCompat.getMainExecutor(context)
         )
         onDispose {
