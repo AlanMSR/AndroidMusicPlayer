@@ -2,6 +2,7 @@ package com.example.androidmusicplayer
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -13,7 +14,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
@@ -25,6 +25,7 @@ import com.example.androidmusicplayer.data.AppDatabase
 import kotlinx.coroutines.delay
 import java.io.File
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlayerScreen(
     songId: Long,
@@ -149,6 +150,9 @@ fun PlayerScreen(
         ) {
             Text(formatTime(shownPosition), style = MaterialTheme.typography.bodySmall)
 
+            val activeColor = MaterialTheme.colorScheme.onSurface
+            val inactiveColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+
             Slider(
                 value = if (dragging) dragValue else progress,
                 enabled = isCurrent,
@@ -164,7 +168,36 @@ fun PlayerScreen(
                 },
                 modifier = Modifier
                     .weight(1f)
-                    .padding(horizontal = 8.dp)
+                    .padding(horizontal = 8.dp),
+                thumb = {
+                    Box(
+                        Modifier
+                            .size(14.dp)
+                            .background(
+                                if (isCurrent) activeColor else activeColor.copy(alpha = 0.4f),
+                                CircleShape
+                            )
+                    )
+                },
+                track = { sliderState ->
+                    val range = sliderState.valueRange.endInclusive - sliderState.valueRange.start
+                    val fraction = ((sliderState.value - sliderState.valueRange.start) / range)
+                        .coerceIn(0f, 1f)
+
+                    Box(
+                        Modifier
+                            .fillMaxWidth()
+                            .height(3.dp)
+                            .background(inactiveColor, RoundedCornerShape(50))
+                    ) {
+                        Box(
+                            Modifier
+                                .fillMaxWidth(fraction)
+                                .fillMaxHeight()
+                                .background(activeColor, RoundedCornerShape(50))
+                        )
+                    }
+                }
             )
 
             Text(formatTime(totalMs), style = MaterialTheme.typography.bodySmall)
