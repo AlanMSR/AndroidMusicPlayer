@@ -26,6 +26,12 @@ interface MusicDao {
     @Delete
     suspend fun deleteSong(song: Song)
 
+    @Query("UPDATE Song SET title = :title WHERE id = :id")
+    suspend fun updateTitle(id: Long, title: String)
+
+    @Query("UPDATE Song SET uploader = :uploader WHERE id = :id")
+    suspend fun updateUploader(id: Long, uploader: String)
+
     // Playlists
     @Insert
     suspend fun insertPlaylist(playlist: Playlist): Long

@@ -1,9 +1,12 @@
 package com.example.androidmusicplayer
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Pause
@@ -14,18 +17,28 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.SemanticsProperties.EditableText
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import coil3.compose.AsyncImage
 import com.example.androidmusicplayer.data.AppDatabase
+import com.example.androidmusicplayer.data.Song
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun PlayerScreen(
     songId: Long,
@@ -55,6 +68,9 @@ fun PlayerScreen(
 
     val isCurrent = playingId == shownId.toString()
     val showPlaying = isCurrent && isPlaying
+
+    // to not cover the text field
+    val imeVisible = WindowInsets.isImeVisible
 
     DisposableEffect(controller) {
         val c = controller ?: return@DisposableEffect onDispose {}
@@ -102,9 +118,26 @@ fun PlayerScreen(
         }
     }
 
+    val scope = rememberCoroutineScope()
+
+    fun save(updated: Song, write: suspend () -> Unit) {
+        scope.launch {
+            withContext(Dispatchers.IO) { write() }
+            // Refresh the notification / queue metadata if this song is loaded
+            controller?.let { c ->
+                for (i in 0 until c.mediaItemCount) {
+                    if (c.getMediaItemAt(i).mediaId == updated.id.toString()) {
+                        c.replaceMediaItem(i, updated.toMediaItem())
+                    }
+                }
+            }
+        }
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
+            .imePadding()
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -115,32 +148,34 @@ fun PlayerScreen(
         }
 
         Spacer(Modifier.weight(1f))
+        if (!imeVisible) {
+            AsyncImage(
+                model = song?.thumbnailPath?.let { File(it) },
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxWidth(0.75f)
+                    .aspectRatio(1f)
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+            )
+            Spacer(Modifier.height(24.dp))
+        }
 
-        AsyncImage(
-            model = song?.thumbnailPath?.let { File(it) },
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .fillMaxWidth(0.75f)
-                .aspectRatio(1f)
-                .background(MaterialTheme.colorScheme.surfaceVariant)
-        )
-
-        Spacer(Modifier.height(24.dp))
-
-        Text(
-            text = song?.title ?: "",
-            style = MaterialTheme.typography.titleLarge,
-            textAlign = TextAlign.Center,
-            maxLines = 2
-        )
-        Spacer(Modifier.height(4.dp))
-        Text(
-            text = song?.uploader ?: "",
-            style = MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.Center,
-            maxLines = 1
-        )
+        song?.let { s ->
+            EditableText(
+                text = s.title,
+                style = MaterialTheme.typography.titleLarge,
+                maxLines = 2,
+                onCommit = { v -> save(s.copy(title = v)) { dao.updateTitle(s.id, v) } }
+            )
+            Spacer(Modifier.height(4.dp))
+            EditableText(
+                text = s.uploader,
+                style = MaterialTheme.typography.bodyMedium,
+                maxLines = 1,
+                onCommit = { v -> save(s.copy(uploader = v)) { dao.updateUploader(s.id, v) } }
+            )
+        }
 
         Spacer(Modifier.weight(1f))
 
@@ -242,6 +277,48 @@ fun PlayerScreen(
         }
 
         Spacer(Modifier.height(32.dp))
+    }
+}
+
+@Composable
+private fun EditableText(
+    text: String,
+    style: TextStyle,
+    maxLines: Int,
+    onCommit: (String) -> Unit
+) {
+    var editing by remember(text) { mutableStateOf(false) }
+    var draft by remember(text) { mutableStateOf(text) }
+    val focusRequester = remember { FocusRequester() }
+
+    if (editing) {
+        LaunchedEffect(Unit) { focusRequester.requestFocus() }
+        OutlinedTextField(
+            value = draft,
+            onValueChange = { draft = it },
+            singleLine = true,
+            textStyle = style.copy(textAlign = TextAlign.Center),
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+            keyboardActions = KeyboardActions(onDone = {
+                val value = draft.trim()
+                if (value.isNotBlank() && value != text) onCommit(value)
+                editing = false
+            }),
+            modifier = Modifier
+                .fillMaxWidth()
+                .focusRequester(focusRequester)
+        )
+    } else {
+        Text(
+            text = text,
+            style = style,
+            textAlign = TextAlign.Center,
+            maxLines = maxLines,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { editing = true }
+        )
     }
 }
 
