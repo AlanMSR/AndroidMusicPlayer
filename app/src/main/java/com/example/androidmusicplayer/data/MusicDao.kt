@@ -14,8 +14,14 @@ interface MusicDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertSong(song: Song): Long   // returns -1 if the videoId already exists
 
+    @Query("SELECT * FROM Song WHERE id IN (:ids)")
+    suspend fun getSongsByIds(ids: List<Long>): List<Song>
+
     @Query("SELECT * FROM Song ORDER BY title COLLATE NOCASE")
     fun getAllSongs(): Flow<List<Song>>
+
+    @Query("SELECT id FROM Song ORDER BY title COLLATE NOCASE")
+    suspend fun getAllSongIds(): List<Long>
 
     @Query("SELECT * FROM Song ORDER BY RANDOM() LIMIT 1")
     suspend fun randomSong(): Song?
@@ -81,6 +87,9 @@ interface MusicDao {
 
     @Query("SELECT playlistId FROM PlaylistSongCrossRef WHERE songId = :songId")
     fun getPlaylistIdsForSong(songId: Long): Flow<List<Long>>
+
+    @Query("SELECT songId FROM PlaylistSongCrossRef WHERE playlistId = :playlistId ORDER BY position ASC")
+    suspend fun getPlaylistSongIds(playlistId: Long): List<Long>
 
     @Query("UPDATE Playlist SET name = :name WHERE id = :id")
     suspend fun renamePlaylist(id: Long, name: String)

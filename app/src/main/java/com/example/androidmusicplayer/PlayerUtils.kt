@@ -2,6 +2,7 @@ package com.example.androidmusicplayer
 
 import android.content.ComponentName
 import android.net.Uri
+import android.os.Bundle
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -45,7 +46,10 @@ fun rememberController(): MediaController? {
     return controller
 }
 
-fun Song.toMediaItem(): MediaItem =
+val MediaItem.queuePos: Int
+    get() = mediaMetadata.extras?.getInt("pos", -1) ?: -1
+
+fun Song.toMediaItem(pos: Int = -1): MediaItem =
     MediaItem.Builder()
         .setMediaId(id.toString())
         .setUri(Uri.fromFile(File(filePath)))
@@ -54,6 +58,7 @@ fun Song.toMediaItem(): MediaItem =
                 .setTitle(title)
                 .setArtist(uploader)
                 .setArtworkUri(thumbnailPath?.let { Uri.fromFile(File(it)) })
+                .setExtras(Bundle().apply { putInt("pos", pos) })
                 .build()
         )
         .build()

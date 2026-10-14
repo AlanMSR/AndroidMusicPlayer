@@ -63,13 +63,7 @@ fun PlaylistDetailScreen(
 
     fun play(shuffle: Boolean) {
         if (songs.isEmpty()) return
-        controller?.apply {
-            shuffleModeEnabled = shuffle
-            val start = if (shuffle) songs.indices.random() else 0
-            setMediaItems(songs.map { it.toMediaItem() }, start, 0L)
-            prepare()
-            play()
-        }
+        scope.launch { QueueManager.play(playlistId, startId = null, shuffle = shuffle) }
     }
 
     Column(modifier = modifier.fillMaxSize()) {

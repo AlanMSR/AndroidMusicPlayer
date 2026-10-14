@@ -34,9 +34,9 @@ fun HomeScreen(
                 style = MaterialTheme.typography.displaySmall,
                 modifier = Modifier.weight(1f)
             )
-            IconButton(onClick = onOpenSettings) {
-                Icon(Icons.Default.Menu, contentDescription = "Settings")
-            }
+//            IconButton(onClick = onOpenSettings) {
+//                Icon(Icons.Default.Menu, contentDescription = "Settings")
+//            }
         }
 
         HorizontalDivider()

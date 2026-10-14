@@ -110,15 +110,11 @@ fun PlayerScreen(
     val progress = if (isCurrent && totalMs > 0) position.toFloat() / totalMs else 0f
     val shownPosition = if (dragging) (dragValue * totalMs).toLong() else position
 
-    fun startShownSong() {
-        controller?.apply {
-            setMediaItems(songs.map { it.toMediaItem() }, index, 0L)
-            prepare()
-            play()
-        }
-    }
-
     val scope = rememberCoroutineScope()
+
+    fun startShownSong() {
+        scope.launch { QueueManager.play(queuePlaylistId, shownId, shuffle = false) }
+    }
 
     fun save(updated: Song, write: suspend () -> Unit) {
         scope.launch {
@@ -127,7 +123,7 @@ fun PlayerScreen(
             controller?.let { c ->
                 for (i in 0 until c.mediaItemCount) {
                     if (c.getMediaItemAt(i).mediaId == updated.id.toString()) {
-                        c.replaceMediaItem(i, updated.toMediaItem())
+                        c.replaceMediaItem(i, updated.toMediaItem(c.getMediaItemAt(i).queuePos))
                     }
                 }
             }
