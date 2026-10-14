@@ -11,6 +11,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Repeat
+import androidx.compose.material.icons.filled.RepeatOne
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material3.*
@@ -19,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.SemanticsProperties.EditableText
@@ -61,6 +64,7 @@ fun PlayerScreen(
 
     var playingId by remember { mutableStateOf<String?>(null) }
     var isPlaying by remember { mutableStateOf(false) }
+    var repeatOne by remember { mutableStateOf(false) }
     var position by remember { mutableLongStateOf(0L) }
     var duration by remember { mutableLongStateOf(0L) }
     var dragging by remember { mutableStateOf(false) }
@@ -77,6 +81,7 @@ fun PlayerScreen(
         fun sync() {
             playingId = c.currentMediaItem?.mediaId
             isPlaying = c.isPlaying
+            repeatOne = c.repeatMode == Player.REPEAT_MODE_ONE
         }
         val listener = object : Player.Listener {
             override fun onEvents(player: Player, events: Player.Events) = sync()
@@ -236,39 +241,70 @@ fun PlayerScreen(
 
         Spacer(Modifier.height(8.dp))
 
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(24.dp),
-            verticalAlignment = Alignment.CenterVertically
+        Box(
+            modifier = Modifier.fillMaxWidth()
         ) {
-            IconButton(onClick = {
-                if (isCurrent) controller?.seekToPrevious()
-                else songs.getOrNull(index - 1)?.let { shownId = it.id }
-            }) {
-                Icon(Icons.Default.SkipPrevious, contentDescription = "Previous", modifier = Modifier.size(32.dp))
-            }
-
-            FilledIconButton(
+            IconButton(
+                enabled = isCurrent,
                 onClick = {
-                    when {
-                        !isCurrent -> startShownSong()
-                        isPlaying -> controller?.pause()
-                        else -> controller?.play()
-                    }
+                    controller?.repeatMode =
+                        if (repeatOne) Player.REPEAT_MODE_OFF else Player.REPEAT_MODE_ONE
                 },
-                modifier = Modifier.size(72.dp)
+                modifier = Modifier.align(Alignment.CenterStart)
             ) {
+                val active = repeatOne && isCurrent
                 Icon(
-                    imageVector = if (showPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                    contentDescription = if (showPlaying) "Pause" else "Play",
-                    modifier = Modifier.size(40.dp)
+                    imageVector = if (active) Icons.Default.RepeatOne else Icons.Default.Repeat,
+                    contentDescription = "Loop",
+                    tint = if (active) Color(0xFF2196F3)
+                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                    modifier = Modifier.size(28.dp)
                 )
             }
 
-            IconButton(onClick = {
-                if (isCurrent) controller?.seekToNext()
-                else songs.getOrNull(index + 1)?.let { shownId = it.id }
-            }) {
-                Icon(Icons.Default.SkipNext, contentDescription = "Next", modifier = Modifier.size(32.dp))
+            Row(
+                modifier = Modifier.align(Alignment.Center),
+                horizontalArrangement = Arrangement.spacedBy(24.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = {
+                    if (isCurrent) controller?.seekToPrevious()
+                    else songs.getOrNull(index - 1)?.let { shownId = it.id }
+                }) {
+                    Icon(
+                        Icons.Default.SkipPrevious,
+                        contentDescription = "Previous",
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
+
+                FilledIconButton(
+                    onClick = {
+                        when {
+                            !isCurrent -> startShownSong()
+                            isPlaying -> controller?.pause()
+                            else -> controller?.play()
+                        }
+                    },
+                    modifier = Modifier.size(72.dp)
+                ) {
+                    Icon(
+                        imageVector = if (showPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                        contentDescription = if (showPlaying) "Pause" else "Play",
+                        modifier = Modifier.size(40.dp)
+                    )
+                }
+
+                IconButton(onClick = {
+                    if (isCurrent) controller?.seekToNext()
+                    else songs.getOrNull(index + 1)?.let { shownId = it.id }
+                }) {
+                    Icon(
+                        Icons.Default.SkipNext,
+                        contentDescription = "Next",
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
             }
         }
 
