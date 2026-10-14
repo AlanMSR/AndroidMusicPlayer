@@ -61,10 +61,11 @@ interface MusicDao {
 
     // Linking
     @Query("""
-        INSERT OR IGNORE INTO PlaylistSongCrossRef (playlistId, songId, position)
-        SELECT :playlistId, :songId, COALESCE(MAX(position), -1) + 1
-        FROM PlaylistSongCrossRef WHERE playlistId = :playlistId
-    """)
+    INSERT OR IGNORE INTO PlaylistSongCrossRef (playlistId, songId, position)
+    SELECT :playlistId, :songId,
+        COALESCE((SELECT MAX(position) FROM PlaylistSongCrossRef WHERE playlistId = :playlistId), -1) + 1
+    WHERE (SELECT COUNT(*) FROM PlaylistSongCrossRef WHERE playlistId = :playlistId) < 9999
+""")
     suspend fun addSongToPlaylist(playlistId: Long, songId: Long)
 
     @Query("""
